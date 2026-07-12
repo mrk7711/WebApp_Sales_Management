@@ -266,6 +266,8 @@ throw Exception("Server error");
 List data = jsonData["data"];
 
 StringBuffer csv = StringBuffer();
+// UTF-8 BOM
+  csv.write('\uFEFF');
 
 csv.writeln(
 "Serial,Product,Producer,QC Operator,Buyer,Exit Date");
