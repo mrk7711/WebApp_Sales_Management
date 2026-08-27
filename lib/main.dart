@@ -3,7 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:universal_html/html.dart' as html;
 import 'dart:convert';
-
+import 'buyer_search_page.dart';
+import 'edit_page.dart';
+import 'package:persian_datetime_picker/persian_datetime_picker.dart';
 void main() {
 runApp(MyApp());
 }
@@ -36,20 +38,66 @@ State<SearchPage> createState() => _SearchPageState();
 
 class _SearchPageState extends State<SearchPage> {
 
+List<String> buyerNames = [];
+
 TextEditingController serialController =
 TextEditingController();
 
 TextEditingController buyerController =
 TextEditingController();
 
+TextEditingController patietController =
+TextEditingController();
+
 TextEditingController exitDateController =
 TextEditingController();
+
+TextEditingController descriptionController =
+TextEditingController();
+
+@override
+void initState() {
+  super.initState();
+
+  loadBuyerNames();
+}
 
 bool isLoading = false;
 
 String product = "-";
 String producer = "-";
 String qc = "-";
+
+void loadBuyerNames() {
+
+  String? saved =
+  html.window.localStorage["buyer_names"];
+
+  if (saved != null && saved.isNotEmpty) {
+
+    setState(() {
+
+      buyerNames =
+      List<String>.from(jsonDecode(saved));
+
+    });
+  }
+}
+
+void saveBuyerName(String name) {
+
+  name = name.trim();
+
+  if (name.isEmpty) return;
+
+  if (!buyerNames.contains(name)) {
+
+    buyerNames.add(name);
+
+    html.window.localStorage["buyer_names"] =
+        jsonEncode(buyerNames);
+  }
+}
 
 Future<void> searchSerial() async {
 
@@ -127,7 +175,7 @@ qc = "-";
 ScaffoldMessenger.of(context).showSnackBar(
 
 SnackBar(
-content: Text("Serial پیدا نشد"),
+content: Text("سریال پیدا نشد"),
 ),
 );
 }
@@ -137,7 +185,7 @@ content: Text("Serial پیدا نشد"),
 ScaffoldMessenger.of(context).showSnackBar(
 
 SnackBar(
-content: Text("Error : $e"),
+content: Text("خطا : $e"),
 ),
 );
 }
@@ -146,7 +194,132 @@ setState(() {
 isLoading = false;
 });
 }
+Future<void> deleteSale() async {
 
+  String serial =
+  serialController.text.trim();
+
+  if (serial.isEmpty) {
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text("شماره سریال را وارد کنید"),
+      ),
+    );
+
+    return;
+  }
+
+  // Confirmation
+  bool? confirm = await showDialog<bool>(
+    context: context,
+    builder: (context) {
+
+      return AlertDialog(
+
+        title: const Text("حذف سریال"),
+
+        content: Text(
+          "آیا مطمئن هستید که می‌خواهید سریال\n$serial\nرا حذف کنید؟",
+        ),
+
+        actions: [
+
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context, false);
+            },
+            child: const Text("لغو"),
+          ),
+
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context, true);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text("حذف"),
+          ),
+
+        ],
+      );
+    },
+  );
+
+  if (confirm != true) {
+    return;
+  }
+
+  try {
+
+    var url = Uri.parse(
+      "https://mohammadreza-karimi.ir/api/delete_sale.php",
+    );
+
+    var response = await http.post(
+
+      url,
+
+      headers: {
+        "Content-Type":
+        "application/x-www-form-urlencoded",
+      },
+
+      body: {
+        "serial": serial,
+      },
+    );
+
+    print("DELETE STATUS: ${response.statusCode}");
+    print("DELETE RESPONSE: ${response.body}");
+
+    var data = jsonDecode(response.body);
+
+    if (data["status"] == "ok") {
+
+      // Clear fields
+      serialController.clear();
+      buyerController.clear();
+      patietController.clear();
+      exitDateController.clear();
+      descriptionController.clear();
+
+      setState(() {
+
+        product = "-";
+        producer = "-";
+        qc = "-";
+
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("با موفقیت حذف شد"),
+        ),
+      );
+
+    } else {
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            data["message"] ?? "Delete failed",
+          ),
+        ),
+      );
+    }
+
+  } catch (e) {
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Error: $e"),
+      ),
+    );
+  }
+}
 Future<void> saveSale() async {
 
 try {
@@ -157,8 +330,14 @@ serialController.text.trim();
 String buyer =
 buyerController.text.trim();
 
+String patiet =
+patietController.text.trim();
+
 String date =
 exitDateController.text.trim();
+
+String description =
+descriptionController.text.trim();
 
 var url = Uri.parse(
 "https://mohammadreza-karimi.ir/api/insert_sale2.php",
@@ -186,24 +365,47 @@ body: {
 
 "buyer_name": buyer,
 
+"patient_name": patiet,
+
 "exit_date": date,
+
+"description": description,
 },
 );
-
+// print("STATUS: ${response.statusCode}");
+// print("BODY: ${response.body}");
 var data =
 jsonDecode(response.body);
 
 if (data["status"] == "ok") {
-
+  saveBuyerName(buyer);
+buyerController.clear();
+patietController.clear();
+exitDateController.clear();
+serialController.clear();
+descriptionController.clear();
+setState(() {
+  product = "-";
+  producer = "-";
+  qc = "-";
+});
 ScaffoldMessenger.of(context).showSnackBar(
 
 SnackBar(
-content: Text("Saved Successfully"),
+content: Text("با موفقیت ذخیره شد"),
 ),
 );
 
 } else {
-
+  buyerController.clear();
+  patietController.clear();
+  exitDateController.clear();
+  descriptionController.clear();
+  setState(() {
+    product = "-";
+    producer = "-";
+    qc = "-";
+  });
 ScaffoldMessenger.of(context).showSnackBar(
 
 SnackBar(
@@ -213,7 +415,6 @@ content: Text(data["message"]),
 }
 
 } catch (e) {
-
 ScaffoldMessenger.of(context).showSnackBar(
 
 SnackBar(
@@ -225,27 +426,30 @@ content: Text("Error : $e"),
 
 Future<void> pickDate() async {
 
-DateTime? pickedDate = await showDatePicker(
+  Jalali? pickedDate = await showPersianDatePicker(
 
-context: context,
+    context: context,
 
-initialDate: DateTime.now(),
+    initialDate: Jalali.now(),
 
-firstDate: DateTime(2020),
+    firstDate: Jalali(1400, 1, 1),
 
-lastDate: DateTime(2100),
-);
+    lastDate: Jalali(1500, 12, 29),
 
-if (pickedDate != null) {
+  );
 
-setState(() {
+  if (pickedDate != null) {
 
-exitDateController.text =
-"${pickedDate.year}-"
-"${pickedDate.month.toString().padLeft(2, '0')}-"
-"${pickedDate.day.toString().padLeft(2, '0')}";
-});
-}
+    setState(() {
+
+      exitDateController.text =
+      "${pickedDate.year}-"
+          "${pickedDate.month.toString().padLeft(2, '0')}-"
+          "${pickedDate.day.toString().padLeft(2, '0')}";
+
+    });
+
+  }
 }
 
 Future<void> exportCSV() async {
@@ -270,7 +474,7 @@ StringBuffer csv = StringBuffer();
   csv.write('\uFEFF');
 
 csv.writeln(
-"Serial,Product,Producer,QC Operator,Buyer,Exit Date");
+"Serial,Product,Producer,QC Operator,Buyer,Exit Date,Description");
 
 for (var item in data) {
 
@@ -280,7 +484,8 @@ csv.writeln(
 "${item["producer"]},"
 "${item["qc_operator"]},"
 "${item["buyer_name"]},"
-"${item["exit_date"]}"
+"${item["exit_date"]},"
+"${item["description"]}"
 );
 }
 
@@ -324,21 +529,21 @@ backgroundColor: Colors.blue[200],
 foregroundColor: Colors.black,
 ),
 
-body: Center(
-
-child: Container(
-
-width:
-MediaQuery.of(context).size.width > 700
-? 800
-    : double.infinity,
-
-padding: const EdgeInsets.all(20),
-
+body: Directionality(
+  textDirection: TextDirection.rtl,
 child: SingleChildScrollView(
+child: Padding(padding: const EdgeInsets.all(20),
+child: Align(
+  alignment: Alignment.topCenter,
+  child: Container(
+  width:
+  MediaQuery.of(context).size.width > 700
+  ? 800
+      : double.infinity,
+
 
 child: Column(
-
+  crossAxisAlignment: CrossAxisAlignment.stretch,
 children: [
 
 const SizedBox(height: 10),
@@ -349,7 +554,7 @@ controller: serialController,
 
 decoration: InputDecoration(
 
-labelText: "Serial Number",
+labelText: "شماره سریال",
 
 labelStyle: const TextStyle(
 fontSize: 16,
@@ -402,7 +607,7 @@ color: Colors.white)
 
     : const Text(
 
-"Search",
+"جست و جو بر  مبنای شماره سریال",
 
 style: TextStyle(
 fontSize: 16,
@@ -411,8 +616,99 @@ color: Colors.black,
 ),
 ),
 ),
+  const SizedBox(height: 10),
 
+  SizedBox(
+
+    width: double.infinity,
+
+    height:45,
+
+    child: ElevatedButton.icon(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.blue[100],
+        foregroundColor: Colors.black,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+      ),
+      onPressed: () {
+
+
+        Navigator.push(
+
+          context,
+
+          MaterialPageRoute(
+
+            builder: (context)=>
+            const BuyerSearchPage(),
+
+          ),
+
+        );
+      },
+
+      icon: const Icon(
+        Icons.search,
+        color: Colors.blue,
+      ),
+
+
+      label: const Text(
+        "رفتن به صفحه ی  جست و جو بر  مبنای نام خریدار",
+      ),
+
+    ),
+
+  ),
 const SizedBox(height: 20),
+  SizedBox(
+
+    width: double.infinity,
+
+    height:45,
+
+    child: ElevatedButton.icon(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.blue[100],
+        foregroundColor: Colors.black,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+      ),
+      onPressed: () {
+
+
+        Navigator.push(
+
+          context,
+
+          MaterialPageRoute(
+
+            builder: (context)=>
+            const EditPage(),
+
+          ),
+
+        );
+      },
+
+      icon: const Icon(
+        Icons.search,
+        color: Colors.blue,
+      ),
+
+
+      label: const Text(
+        "رفتن به صفحه ویرایش اطلاعات",
+      ),
+
+
+    ),
+
+  ),
+  const SizedBox(height: 20),
 
 Card(
 
@@ -431,7 +727,7 @@ Icons.category,
 color: Colors.green,
 ),
 
-title: const Text("Product"),
+title: const Text("نام محصول"),
 
 subtitle: Text(product),
 ),
@@ -455,7 +751,7 @@ Icons.person,
 color: Colors.blue,
 ),
 
-title: const Text("Producer"),
+title: const Text("تولیدکننده"),
 
 subtitle: Text(producer),
 ),
@@ -479,7 +775,7 @@ Icons.verified,
 color: Colors.red,
 ),
 
-title: const Text("QC Operator"),
+title: const Text("اپراتور کنترل کیفی"),
 
 subtitle: Text(qc),
 ),
@@ -487,26 +783,82 @@ subtitle: Text(qc),
 
 const SizedBox(height: 30),
 
-TextField(
+  Autocomplete<String>(
 
-controller: buyerController,
+    optionsBuilder:
+        (TextEditingValue textEditingValue) {
 
-decoration: InputDecoration(
+      if (textEditingValue.text.isEmpty) {
+        return buyerNames;
+      }
 
-labelText: "Buyer Name",
+      return buyerNames.where(
+            (String name) => name
+            .toLowerCase()
+            .contains(
+          textEditingValue.text.toLowerCase(),
+        ),
+      );
+    },
 
-prefixIcon: const Icon(
-Icons.person_outline,
-color: Colors.blue,
-),
+    onSelected: (String selection) {
 
-border: OutlineInputBorder(
-borderRadius:
-BorderRadius.circular(15),
-),
-),
-),
+      buyerController.text = selection;
+    },
 
+    fieldViewBuilder: (
+        BuildContext context,
+        TextEditingController fieldController,
+        FocusNode focusNode,
+        VoidCallback onFieldSubmitted,
+        ) {
+
+      // همگام‌سازی با controller فعلی
+      fieldController.text = buyerController.text;
+
+      fieldController.addListener(() {
+
+        buyerController.text =
+            fieldController.text;
+      });
+
+      return TextField(
+
+        controller: fieldController,
+
+        focusNode: focusNode,
+
+        decoration: InputDecoration(
+
+          labelText: "نام خریدار",
+
+          prefixIcon: const Icon(
+            Icons.person_outline,
+            color: Colors.blue,
+          ),
+
+          border: OutlineInputBorder(
+            borderRadius:
+            BorderRadius.circular(15),
+          ),
+        ),
+      );
+    },
+  ),
+  const SizedBox(height: 30),
+  TextField(
+    controller: patietController,
+    decoration: InputDecoration(
+      labelText: "نام بیمار",
+      prefixIcon: const Icon(
+        Icons.person_outline,
+        color: Colors.green,
+      ),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+    ),
+  ),
 const SizedBox(height: 30),
 
 TextField(
@@ -519,7 +871,7 @@ onTap: pickDate,
 
 decoration: InputDecoration(
 
-labelText: "Exit Date",
+labelText: "تاریخ خروج",
 
 prefixIcon: const Icon(
 Icons.calendar_month,
@@ -532,6 +884,22 @@ BorderRadius.circular(15),
 ),
 ),
 ),
+
+  const SizedBox(height: 30),
+
+  TextField(
+    controller: descriptionController,
+    decoration: InputDecoration(
+      labelText: "توضیحات",
+      prefixIcon: const Icon(
+        Icons.description,
+        color: Colors.orange,
+      ),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+    ),
+  ),
 
 const SizedBox(height: 30),
 
@@ -551,7 +919,7 @@ color: Colors.blue,
 ),
 
 label:
-const Text("Save Sale"),
+const Text("ذخیره "),
 
 style: ElevatedButton.styleFrom(
 
@@ -570,8 +938,40 @@ BorderRadius.circular(12),
 ),
 ),
 
+
 const SizedBox(height: 30),
 
+  SizedBox(
+    width: double.infinity,
+    height: 45,
+
+    child: ElevatedButton.icon(
+
+      onPressed: deleteSale,
+
+      icon: const Icon(
+        Icons.delete,
+        color: Colors.white,
+      ),
+
+      label: const Text(
+        "حذف ",
+      ),
+
+      style: ElevatedButton.styleFrom(
+
+        backgroundColor: Colors.red,
+
+        foregroundColor: Colors.white,
+
+        shape: RoundedRectangleBorder(
+          borderRadius:
+          BorderRadius.circular(12),
+        ),
+      ),
+    ),
+  ),
+const SizedBox(height: 30),
 SizedBox(
 
 width: double.infinity,
@@ -588,7 +988,7 @@ color: Colors.red[900],
 ),
 
 label:
-const Text("Export CSV"),
+const Text("اکسل خروجی"),
 
 style: ElevatedButton.styleFrom(
 
@@ -611,6 +1011,9 @@ BorderRadius.circular(12),
 ),
 ),
 ),
+),
+),
+
 );
 }
 }
