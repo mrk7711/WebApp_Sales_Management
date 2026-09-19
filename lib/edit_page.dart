@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:persian_datetime_picker/persian_datetime_picker.dart';
-
+import 'package:flutter_localizations/flutter_localizations.dart';
 class EditPage extends StatefulWidget {
   const EditPage({super.key});
 
@@ -25,7 +25,13 @@ class _EditPageState extends State<EditPage> {
   TextEditingController patientController =
   TextEditingController();
 
+  TextEditingController UIDController =
+  TextEditingController();
+
   TextEditingController exitDateController =
+  TextEditingController();
+
+  TextEditingController guaDateController =
   TextEditingController();
 
   TextEditingController descriptionController =
@@ -126,8 +132,14 @@ class _EditPageState extends State<EditPage> {
           patientController.text =
               item["patient_name"] ?? "";
 
+          UIDController.text =
+              item["uid"] ?? "";
+
           exitDateController.text =
               item["exit_date"] ?? "";
+
+          guaDateController.text =
+              item["guarantee_date"] ?? "";
 
           descriptionController.text =
               item["description"] ?? "";
@@ -159,7 +171,11 @@ class _EditPageState extends State<EditPage> {
 
           patientController.clear();
 
+          UIDController.clear();
+
           exitDateController.clear();
+
+          guaDateController.clear();
 
           descriptionController.clear();
 
@@ -296,8 +312,14 @@ class _EditPageState extends State<EditPage> {
           "patient_name":
           patientController.text.trim(),
 
+          "uid":
+          UIDController.text.trim(),
+
           "exit_date":
           exitDateController.text.trim(),
+
+          "guarantee_date":
+          guaDateController.text.trim(),
 
           "description":
           descriptionController.text.trim(),
@@ -400,22 +422,17 @@ class _EditPageState extends State<EditPage> {
 
   Future<void> pickDate() async {
 
-    DateTime? pickedDate =
-    await showDatePicker(
+    Jalali? pickedDate = await showPersianDatePicker(
 
       context: context,
 
-      initialDate:
-      DateTime.now(),
+      initialDate: Jalali.now(),
 
-      firstDate:
-      DateTime(2020),
+      firstDate: Jalali(1400, 1, 1),
 
-      lastDate:
-      DateTime(2100),
-
+      lastDate: Jalali(1500, 12, 29),
+      locale: const Locale("fa", "IR"),
     );
-
 
     if (pickedDate != null) {
 
@@ -427,6 +444,34 @@ class _EditPageState extends State<EditPage> {
             "${pickedDate.day.toString().padLeft(2, '0')}";
 
       });
+
+    }
+  }
+  Future<void> pickDate2() async {
+
+    Jalali? pickedDate = await showPersianDatePicker(
+
+      context: context,
+
+      initialDate: Jalali.now(),
+
+      firstDate: Jalali(1400, 1, 1),
+
+      lastDate: Jalali(1500, 12, 29),
+      locale: const Locale("fa", "IR"),
+    );
+
+    if (pickedDate != null) {
+
+      setState(() {
+
+        guaDateController.text =
+        "${pickedDate.year}-"
+            "${pickedDate.month.toString().padLeft(2, '0')}-"
+            "${pickedDate.day.toString().padLeft(2, '0')}";
+
+      });
+
     }
   }
 
@@ -442,9 +487,13 @@ class _EditPageState extends State<EditPage> {
 
     buyerController.dispose();
 
+    UIDController.dispose();
+
     patientController.dispose();
 
     exitDateController.dispose();
+
+    guaDateController.dispose();
 
     descriptionController.dispose();
 
@@ -468,7 +517,7 @@ class _EditPageState extends State<EditPage> {
       appBar: AppBar(
 
         title: const Text(
-          "ویرایش براساس سریال نامبر",
+          "ویرایش براساس شماره سریال",
         ),
 
         centerTitle: true,
@@ -544,7 +593,7 @@ class _EditPageState extends State<EditPage> {
                       InputDecoration(
 
                         labelText:
-                        "سریال نامبر را وارد نمایید",
+                        "شماره سریال را وارد نمایید",
 
                         prefixIcon:
                         const Icon(
@@ -707,7 +756,38 @@ class _EditPageState extends State<EditPage> {
                         height: 25,
                       ),
 
+                      TextField(
 
+                        controller:
+                        UIDController,
+
+                        decoration:
+                        InputDecoration(
+
+                          labelText:
+                          "کد UID",
+
+                          prefixIcon:
+                          const Icon(
+                            Icons.code,
+                            color:
+                            Colors.purple,
+                          ),
+
+                          border:
+                          OutlineInputBorder(
+                            borderRadius:
+                            BorderRadius.circular(
+                                15),
+                          ),
+
+                        ),
+                      ),
+
+
+                      const SizedBox(
+                        height: 25,
+                      ),
                       TextField(
 
                         controller:
@@ -747,7 +827,44 @@ class _EditPageState extends State<EditPage> {
                         height: 25,
                       ),
 
+                      TextField(
 
+                        controller:
+                        guaDateController,
+
+                        readOnly:
+                        true,
+
+                        onTap:
+                        pickDate2,
+
+                        decoration:
+                        InputDecoration(
+
+                          labelText:
+                          "تاریخ شروع گارانتی",
+
+                          prefixIcon:
+                          const Icon(
+                            Icons.calendar_month,
+                            color:
+                            Colors.grey,
+                          ),
+
+                          border:
+                          OutlineInputBorder(
+                            borderRadius:
+                            BorderRadius.circular(
+                                15),
+                          ),
+
+                        ),
+                      ),
+
+
+                      const SizedBox(
+                        height: 25,
+                      ),
                       TextField(
 
                         controller:

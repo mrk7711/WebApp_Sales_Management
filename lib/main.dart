@@ -5,7 +5,9 @@ import 'package:universal_html/html.dart' as html;
 import 'dart:convert';
 import 'buyer_search_page.dart';
 import 'edit_page.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:persian_datetime_picker/persian_datetime_picker.dart';
+
 void main() {
 runApp(MyApp());
 }
@@ -20,7 +22,18 @@ return MaterialApp(
 debugShowCheckedModeBanner: false,
 
 title: 'Serial Search',
+  supportedLocales: const [
+    Locale("fa", "IR"),
+    Locale("en", "US"),
+  ],
+  localizationsDelegates: const [
+    PersianMaterialLocalizations.delegate,
+    PersianCupertinoLocalizations.delegate,
 
+    GlobalMaterialLocalizations.delegate,
+    GlobalWidgetsLocalizations.delegate,
+    GlobalCupertinoLocalizations.delegate,
+  ],
 theme: ThemeData(
 useMaterial3: true,
 ),
@@ -49,7 +62,13 @@ TextEditingController();
 TextEditingController patietController =
 TextEditingController();
 
+TextEditingController UIDController =
+TextEditingController();
+
 TextEditingController exitDateController =
+TextEditingController();
+
+TextEditingController guaDateController =
 TextEditingController();
 
 TextEditingController descriptionController =
@@ -106,7 +125,7 @@ if (serialController.text.isEmpty) {
 ScaffoldMessenger.of(context).showSnackBar(
 
 SnackBar(
-content: Text("Serial Number را وارد کنید"),
+content: Text("شماره سریال را وارد کنید"),
 ),
 );
 
@@ -283,7 +302,9 @@ Future<void> deleteSale() async {
       serialController.clear();
       buyerController.clear();
       patietController.clear();
+      UIDController.clear();
       exitDateController.clear();
+      guaDateController.clear();
       descriptionController.clear();
 
       setState(() {
@@ -333,8 +354,14 @@ buyerController.text.trim();
 String patiet =
 patietController.text.trim();
 
+String uid =
+UIDController.text.trim();
+
 String date =
 exitDateController.text.trim();
+
+String gua =
+guaDateController.text.trim();
 
 String description =
 descriptionController.text.trim();
@@ -367,7 +394,11 @@ body: {
 
 "patient_name": patiet,
 
+"uid": uid,
+
 "exit_date": date,
+
+"guarantee_date": gua,
 
 "description": description,
 },
@@ -381,7 +412,9 @@ if (data["status"] == "ok") {
   saveBuyerName(buyer);
 buyerController.clear();
 patietController.clear();
+UIDController.clear();
 exitDateController.clear();
+guaDateController.clear();
 serialController.clear();
 descriptionController.clear();
 setState(() {
@@ -399,7 +432,9 @@ content: Text("با موفقیت ذخیره شد"),
 } else {
   buyerController.clear();
   patietController.clear();
+  UIDController.clear();
   exitDateController.clear();
+  guaDateController.clear();
   descriptionController.clear();
   setState(() {
     product = "-";
@@ -435,7 +470,7 @@ Future<void> pickDate() async {
     firstDate: Jalali(1400, 1, 1),
 
     lastDate: Jalali(1500, 12, 29),
-
+    locale: const Locale("fa", "IR"),
   );
 
   if (pickedDate != null) {
@@ -443,6 +478,34 @@ Future<void> pickDate() async {
     setState(() {
 
       exitDateController.text =
+      "${pickedDate.year}-"
+          "${pickedDate.month.toString().padLeft(2, '0')}-"
+          "${pickedDate.day.toString().padLeft(2, '0')}";
+
+    });
+
+  }
+}
+
+Future<void> pickDate2() async {
+
+  Jalali? pickedDate = await showPersianDatePicker(
+
+    context: context,
+
+    initialDate: Jalali.now(),
+
+    firstDate: Jalali(1400, 1, 1),
+
+    lastDate: Jalali(1500, 12, 29),
+    locale: const Locale("fa", "IR"),
+  );
+
+  if (pickedDate != null) {
+
+    setState(() {
+
+      guaDateController.text =
       "${pickedDate.year}-"
           "${pickedDate.month.toString().padLeft(2, '0')}-"
           "${pickedDate.day.toString().padLeft(2, '0')}";
@@ -474,7 +537,7 @@ StringBuffer csv = StringBuffer();
   csv.write('\uFEFF');
 
 csv.writeln(
-"Serial,Product,Producer,QC Operator,Buyer,Exit Date,Description");
+"Serial,Product,Producer,QC Operator,Buyer,UID,Exit Date,Guarantee Date,Description");
 
 for (var item in data) {
 
@@ -484,7 +547,9 @@ csv.writeln(
 "${item["producer"]},"
 "${item["qc_operator"]},"
 "${item["buyer_name"]},"
+"${item["uid"]},"
 "${item["exit_date"]},"
+"${item["guarantee_date"]},"
 "${item["description"]}"
 );
 }
@@ -607,7 +672,7 @@ color: Colors.white)
 
     : const Text(
 
-"جست و جو بر  مبنای شماره سریال",
+"افزودن شماره سریال جدید",
 
 style: TextStyle(
 fontSize: 16,
@@ -653,10 +718,8 @@ color: Colors.black,
         Icons.search,
         color: Colors.blue,
       ),
-
-
       label: const Text(
-        "رفتن به صفحه ی  جست و جو بر  مبنای نام خریدار",
+        " صفحه ی جستجو بر مبنای خریدار",
       ),
 
     ),
@@ -701,7 +764,7 @@ const SizedBox(height: 20),
 
 
       label: const Text(
-        "رفتن به صفحه ویرایش اطلاعات",
+        " صفحه ویرایش اطلاعات ثبت شده",
       ),
 
 
@@ -860,7 +923,20 @@ const SizedBox(height: 30),
     ),
   ),
 const SizedBox(height: 30),
-
+  TextField(
+    controller: UIDController,
+    decoration: InputDecoration(
+      labelText: "کد UID",
+      prefixIcon: const Icon(
+        Icons.code,
+        color: Colors.purple,
+      ),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+    ),
+  ),
+  const SizedBox(height: 30),
 TextField(
 
 controller: exitDateController,
@@ -886,7 +962,31 @@ BorderRadius.circular(15),
 ),
 
   const SizedBox(height: 30),
+  TextField(
 
+    controller: guaDateController,
+
+    readOnly: true,
+
+    onTap: pickDate2,
+
+    decoration: InputDecoration(
+
+      labelText: "تاریخ شروع گارانتی",
+
+      prefixIcon: const Icon(
+        Icons.calendar_month,
+        color: Colors.grey,
+      ),
+
+      border: OutlineInputBorder(
+        borderRadius:
+        BorderRadius.circular(15),
+      ),
+    ),
+  ),
+
+  const SizedBox(height: 30),
   TextField(
     controller: descriptionController,
     decoration: InputDecoration(

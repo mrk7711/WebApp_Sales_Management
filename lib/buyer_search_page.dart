@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:flutter/services.dart';
 
 class BuyerSearchPage extends StatefulWidget {
   const BuyerSearchPage({super.key});
@@ -36,6 +37,7 @@ class _BuyerSearchPageState extends State<BuyerSearchPage> {
     setState(() {
       isLoading = true;
       sales.clear();
+
     });
 
     try {
@@ -59,7 +61,7 @@ class _BuyerSearchPageState extends State<BuyerSearchPage> {
             data["data"] ?? [],
           );
         });
-
+        buyerController.clear();
         if (sales.isEmpty) {
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -116,7 +118,7 @@ class _BuyerSearchPageState extends State<BuyerSearchPage> {
       appBar: AppBar(
 
         title: const Text(
-          "Search Buyer",
+          "جستجو بر مبنای خریدار",
         ),
 
         centerTitle: true,
@@ -287,36 +289,114 @@ class _BuyerSearchPageState extends State<BuyerSearchPage> {
 
                               children: [
 
-                                Row(
 
+                            Row(
+                            children: [
+
+                              const Icon(
+                              Icons.confirmation_number,
+                              color: Colors.red,
+                            ),
+
+                            const SizedBox(width: 8),
+
+                            Expanded(
+                              child: SelectableText(
+                                "شماره سریال: ${item["serial"] ?? "-"}",
+                                style: const TextStyle(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+
+                            IconButton(
+                              icon: const Icon(
+                                Icons.copy,
+                                color: Colors.blue,
+                              ),
+                              tooltip: "کپی شماره سریال",
+                              onPressed: () async {
+
+                                final serial =
+                                    item["serial"]?.toString() ?? "";
+
+                                if (serial.isNotEmpty) {
+
+                                  await Clipboard.setData(
+                                    ClipboardData(text: serial),
+                                  );
+
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          "شماره سریال کپی شد",
+                                        ),
+                                        duration: Duration(seconds: 1),
+                                      ),
+                                    );
+                                  }
+                                }
+                              },
+                            ),
+                            ],
+                          ),
+                                Row(
                                   children: [
 
                                     const Icon(
-                                      Icons
-                                          .confirmation_number,
-                                      color: Colors.red,
+                                      Icons.code,
+                                      color: Colors.purple,
                                     ),
 
                                     const SizedBox(width: 8),
 
                                     Expanded(
-
-                                      child: Text(
-                                        "شماره سریال: "
-                                            "${item["serial"] ?? "-"}",
-
-                                        style:
-                                        const TextStyle(
+                                      child: SelectableText(
+                                        "کد یو آی دی: ${item["uid"] ?? "-"}",
+                                        style: const TextStyle(
                                           fontSize: 17,
-                                          fontWeight:
-                                          FontWeight.bold,
+                                          fontWeight: FontWeight.bold,
                                         ),
                                       ),
+                                    ),
+
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.copy,
+                                        color: Colors.green,
+                                      ),
+                                      tooltip: " کد یو آی دی کپی شد",
+                                      onPressed: () async {
+
+                                        final uid =
+                                            item["uid"]?.toString() ?? "";
+
+                                        if (uid.isNotEmpty) {
+
+                                          await Clipboard.setData(
+                                            ClipboardData(text: uid),
+                                          );
+
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  "کد UID کپی شد",
+                                                ),
+                                                duration: Duration(seconds: 1),
+                                              ),
+                                            );
+                                          }
+                                        }
+                                      },
                                     ),
                                   ],
                                 ),
 
-                                const Divider(),
+
+                            const Divider(),
 
                                 _buildInfoRow(
                                   Icons.category,
@@ -324,28 +404,18 @@ class _BuyerSearchPageState extends State<BuyerSearchPage> {
                                   item["product"],
                                   Colors.green,
                                 ),
-
-                                _buildInfoRow(
-                                  Icons.person,
-                                  "تولیدکننده",
-                                  item["producer"],
-                                  Colors.blue,
-                                ),
-
-                                _buildInfoRow(
-                                  Icons.verified,
-                                  "اپراتور کنترل کیفی",
-                                  item["qc_operator"],
-                                  Colors.red,
-                                ),
-
                                 _buildInfoRow(
                                   Icons.person_outline,
-                                  "نام بیمار",
-                                  item["patient_name"],
+                                  "نام خریدار",
+                                  item["buyer_name"],
                                   Colors.green,
                                 ),
-
+                                _buildInfoRow(
+                                  Icons.person,
+                                  "نام بیمار",
+                                  item["patient_name"],
+                                  Colors.blue,
+                                ),
                                 _buildInfoRow(
                                   Icons.calendar_month,
                                   "تاریخ خروج",
