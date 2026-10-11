@@ -123,7 +123,6 @@ class _EditPageState extends State<EditPage> {
 
         var item = data["data"];
 
-
         setState(() {
 
           buyerController.text =

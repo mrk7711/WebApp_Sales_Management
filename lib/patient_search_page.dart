@@ -1,0 +1,497 @@
+import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:flutter/services.dart';
+
+class PatientSearchPage extends StatefulWidget {
+  const PatientSearchPage({super.key});
+
+  @override
+  State<PatientSearchPage> createState() => _PatientSearchPage();
+}
+
+class _PatientSearchPage extends State<PatientSearchPage> {
+
+  TextEditingController patientController =
+  TextEditingController();
+
+  bool isLoading = false;
+
+  List<dynamic> sales = [];
+
+  Future<void> searchPatient() async {
+
+    String patient = patientController.text.trim();
+
+    if (patient.isEmpty) {
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("نام بیمار را وارد کنید"),
+        ),
+      );
+
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+      sales.clear();
+
+    });
+
+    try {
+
+      var url = Uri.parse(
+        "https://mohammadreza-karimi.ir/api/search_patient.php"
+            "?patient=${Uri.encodeComponent(patient)}",
+      );
+
+      var response = await http.get(url);
+
+      print("STATUS: ${response.statusCode}");
+      print("RESPONSE: ${response.body}");
+
+      var data = jsonDecode(response.body);
+
+      if (data["status"] == "ok") {
+
+        setState(() {
+          sales = List<dynamic>.from(
+            data["data"] ?? [],
+          );
+        });
+        patientController.clear();
+        if (sales.isEmpty) {
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                "هیچ رکوردی برای این بیمار پیدا نشد",
+              ),
+            ),
+          );
+        }
+
+      } else {
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              data["message"] ?? "خطا در جستجو",
+            ),
+          ),
+        );
+      }
+
+    } catch (e) {
+
+      print("ERROR: $e");
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("خطا: $e"),
+        ),
+      );
+
+    } finally {
+
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+
+    patientController.dispose();
+
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    return Scaffold(
+
+      appBar: AppBar(
+
+        title: const Text(
+          "جستجو بر مبنای بیمار",
+        ),
+
+        centerTitle: true,
+
+        backgroundColor: Colors.blue[200],
+
+        foregroundColor: Colors.black,
+      ),
+
+      body: Directionality(
+
+        textDirection: TextDirection.rtl,
+
+        child: SingleChildScrollView(
+
+          child: Padding(
+
+            padding: const EdgeInsets.all(20),
+
+            child: Align(
+
+              alignment: Alignment.topCenter,
+
+              child: Container(
+
+                width:
+                MediaQuery.of(context).size.width > 700
+                    ? 800
+                    : double.infinity,
+
+                child: Column(
+
+                  crossAxisAlignment:
+                  CrossAxisAlignment.stretch,
+
+                  children: [
+
+                    const SizedBox(height: 10),
+
+                    TextField(
+
+                      controller: patientController,
+
+                      decoration: InputDecoration(
+
+                        labelText: "نام بیمار",
+
+                        prefixIcon: const Icon(
+                          Icons.person_search,
+                          color: Colors.blue,
+                        ),
+
+                        border: OutlineInputBorder(
+                          borderRadius:
+                          BorderRadius.circular(15),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    SizedBox(
+
+                      height: 45,
+
+                      child: ElevatedButton.icon(
+
+                        onPressed:
+                        isLoading
+                            ? null
+                            : searchPatient,
+
+                        icon: const Icon(
+                          Icons.search,
+                        ),
+
+                        label: isLoading
+
+                            ? const SizedBox(
+                          width: 22,
+                          height: 22,
+                          child:
+                          CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+
+                            : const Text(
+                          "جستجو",
+                          style: TextStyle(
+                            fontSize: 16,
+                          ),
+                        ),
+
+                        style:
+                        ElevatedButton.styleFrom(
+
+                          backgroundColor:
+                          Colors.blue[100],
+
+                          foregroundColor:
+                          Colors.black,
+
+                          shape:
+                          RoundedRectangleBorder(
+                            borderRadius:
+                            BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 30),
+
+                    if (sales.isNotEmpty)
+
+                      Card(
+
+                        child: Padding(
+
+                          padding:
+                          const EdgeInsets.all(15),
+
+                          child: Text(
+                            "تعداد رکوردها: ${sales.length}",
+
+                            style:
+                            const TextStyle(
+                              fontSize: 17,
+                              fontWeight:
+                              FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ),
+
+                    const SizedBox(height: 10),
+
+                    ...sales.map(
+
+                          (item) {
+
+                        return Card(
+
+                          elevation: 3,
+
+                          margin:
+                          const EdgeInsets.only(
+                            bottom: 15,
+                          ),
+
+                          shape:
+                          RoundedRectangleBorder(
+                            borderRadius:
+                            BorderRadius.circular(15),
+                          ),
+
+                          child: Padding(
+
+                            padding:
+                            const EdgeInsets.all(15),
+
+                            child: Column(
+
+                              crossAxisAlignment:
+                              CrossAxisAlignment.start,
+
+                              children: [
+
+
+                                Row(
+                                  children: [
+
+                                    const Icon(
+                                      Icons.confirmation_number,
+                                      color: Colors.red,
+                                    ),
+
+                                    const SizedBox(width: 8),
+
+                                    Expanded(
+                                      child: SelectableText(
+                                        "شماره سریال: ${item["serial"] ?? "-"}",
+                                        style: const TextStyle(
+                                          fontSize: 17,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.copy,
+                                        color: Colors.blue,
+                                      ),
+                                      tooltip: "کپی شماره سریال",
+                                      onPressed: () async {
+
+                                        final serial =
+                                            item["serial"]?.toString() ?? "";
+
+                                        if (serial.isNotEmpty) {
+
+                                          await Clipboard.setData(
+                                            ClipboardData(text: serial),
+                                          );
+
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  "شماره سریال کپی شد",
+                                                ),
+                                                duration: Duration(seconds: 1),
+                                              ),
+                                            );
+                                          }
+                                        }
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                Row(
+                                  children: [
+
+                                    const Icon(
+                                      Icons.code,
+                                      color: Colors.purple,
+                                    ),
+
+                                    const SizedBox(width: 8),
+
+                                    Expanded(
+                                      child: SelectableText(
+                                        "کد یو آی دی: ${item["uid"] ?? "-"}",
+                                        style: const TextStyle(
+                                          fontSize: 17,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ),
+
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.copy,
+                                        color: Colors.green,
+                                      ),
+                                      tooltip: " کد یو آی دی کپی شد",
+                                      onPressed: () async {
+
+                                        final uid =
+                                            item["uid"]?.toString() ?? "";
+
+                                        if (uid.isNotEmpty) {
+
+                                          await Clipboard.setData(
+                                            ClipboardData(text: uid),
+                                          );
+
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  "کد UID کپی شد",
+                                                ),
+                                                duration: Duration(seconds: 1),
+                                              ),
+                                            );
+                                          }
+                                        }
+                                      },
+                                    ),
+                                  ],
+                                ),
+
+
+                                const Divider(),
+
+                                _buildInfoRow(
+                                  Icons.category,
+                                  "محصول",
+                                  item["product"],
+                                  Colors.green,
+                                ),
+                                _buildInfoRow(
+                                  Icons.person_outline,
+                                  "نام خریدار",
+                                  item["buyer_name"],
+                                  Colors.green,
+                                ),
+                                _buildInfoRow(
+                                  Icons.person,
+                                  "نام بیمار",
+                                  item["patient_name"],
+                                  Colors.blue,
+                                ),
+                                _buildInfoRow(
+                                  Icons.calendar_month,
+                                  "تاریخ خروج",
+                                  item["exit_date"],
+                                  Colors.orange,
+                                ),
+
+                                if (item["description"] !=
+                                    null &&
+                                    item["description"]
+                                        .toString()
+                                        .isNotEmpty)
+
+                                  _buildInfoRow(
+                                    Icons.description,
+                                    "توضیحات",
+                                    item["description"],
+                                    Colors.deepPurple,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(
+      IconData icon,
+      String title,
+      dynamic value,
+      Color iconColor,
+      ) {
+
+    return Padding(
+
+      padding:
+      const EdgeInsets.only(bottom: 12),
+
+      child: Row(
+
+        crossAxisAlignment:
+        CrossAxisAlignment.start,
+
+        children: [
+
+          Icon(
+            icon,
+            size: 21,
+            color: iconColor,
+          ),
+
+          const SizedBox(width: 10),
+
+          Text(
+            "$title: ",
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+
+          Expanded(
+            child: Text(
+              value?.toString() ?? "-",
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

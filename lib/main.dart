@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:universal_html/html.dart' as html;
 import 'dart:convert';
 import 'buyer_search_page.dart';
+import 'patient_search_page.dart';
 import 'edit_page.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:persian_datetime_picker/persian_datetime_picker.dart';
@@ -681,7 +682,7 @@ color: Colors.black,
 ),
 ),
 ),
-  const SizedBox(height: 10),
+  const SizedBox(height: 20),
 
   SizedBox(
 
@@ -726,6 +727,50 @@ color: Colors.black,
 
   ),
 const SizedBox(height: 20),
+  SizedBox(
+
+    width: double.infinity,
+
+    height:45,
+
+    child: ElevatedButton.icon(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.blue[100],
+        foregroundColor: Colors.black,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+      ),
+      onPressed: () {
+
+
+        Navigator.push(
+
+          context,
+
+          MaterialPageRoute(
+
+            builder: (context)=>
+            const PatientSearchPage(),
+
+          ),
+
+        );
+      },
+
+      icon: const Icon(
+        Icons.search,
+        color: Colors.blue,
+      ),
+      label: const Text(
+        " صفحه ی جستجو بر مبنای نام بیمار",
+      ),
+
+    ),
+
+  ),
+  const SizedBox(height: 20),
+
   SizedBox(
 
     width: double.infinity,
@@ -937,51 +982,61 @@ const SizedBox(height: 30),
     ),
   ),
   const SizedBox(height: 30),
-TextField(
-
-controller: exitDateController,
-
-readOnly: true,
-
-onTap: pickDate,
-
-decoration: InputDecoration(
-
-labelText: "تاریخ خروج",
-
-prefixIcon: const Icon(
-Icons.calendar_month,
-color: Colors.red,
-),
-
-border: OutlineInputBorder(
-borderRadius:
-BorderRadius.circular(15),
-),
-),
-),
+  TextField(
+    controller: exitDateController,
+    readOnly: true,
+    onTap: pickDate,
+    decoration: InputDecoration(
+      labelText: "تاریخ خروج",
+      prefixIcon: const Icon(
+        Icons.calendar_month,
+        color: Colors.red,
+      ),
+      suffixIcon: exitDateController.text.isNotEmpty
+          ? IconButton(
+        icon: const Icon(
+          Icons.clear,
+          color: Colors.red,
+        ),
+        onPressed: () {
+          setState(() {
+            exitDateController.clear();
+          });
+        },
+      )
+          : null,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(15),
+      ),
+    ),
+  ),
 
   const SizedBox(height: 30),
   TextField(
-
     controller: guaDateController,
-
     readOnly: true,
-
     onTap: pickDate2,
-
     decoration: InputDecoration(
-
       labelText: "تاریخ شروع گارانتی",
-
       prefixIcon: const Icon(
         Icons.calendar_month,
         color: Colors.grey,
       ),
-
+      suffixIcon: guaDateController.text.isNotEmpty
+          ? IconButton(
+        icon: const Icon(
+          Icons.clear,
+          color: Colors.red,
+        ),
+        onPressed: () {
+          setState(() {
+            guaDateController.clear();
+          });
+        },
+      )
+          : null,
       border: OutlineInputBorder(
-        borderRadius:
-        BorderRadius.circular(15),
+        borderRadius: BorderRadius.circular(15),
       ),
     ),
   ),
