@@ -367,7 +367,7 @@ class _PatientSearchPage extends State<PatientSearchPage> {
                                         Icons.copy,
                                         color: Colors.green,
                                       ),
-                                      tooltip: " کد یو آی دی کپی شد",
+                                      tooltip: " کپی کد",
                                       onPressed: () async {
 
                                         final uid =
