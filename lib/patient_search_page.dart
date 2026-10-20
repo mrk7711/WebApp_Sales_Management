@@ -30,14 +30,11 @@ class _PatientSearchPage extends State<PatientSearchPage> {
           content: Text("نام بیمار را وارد کنید"),
         ),
       );
-
       return;
     }
-
     setState(() {
       isLoading = true;
       sales.clear();
-
     });
 
     try {

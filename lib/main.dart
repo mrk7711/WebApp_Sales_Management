@@ -8,7 +8,7 @@ import 'patient_search_page.dart';
 import 'edit_page.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:persian_datetime_picker/persian_datetime_picker.dart';
-
+import 'return_page.dart';
 void main() {
 runApp(MyApp());
 }
@@ -817,7 +817,49 @@ const SizedBox(height: 20),
 
   ),
   const SizedBox(height: 20),
+  SizedBox(
 
+    width: double.infinity,
+
+    height:45,
+
+    child: ElevatedButton.icon(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.blue[100],
+        foregroundColor: Colors.black,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+      ),
+      onPressed: () {
+
+
+        Navigator.push(
+
+          context,
+
+          MaterialPageRoute(
+
+            builder: (context)=>
+            const ReturnPage(),
+
+          ),
+
+        );
+      },
+
+      icon: const Icon(
+        Icons.search,
+        color: Colors.blue,
+      ),
+      label: const Text(
+        " صفحه سمعک های مرجوعی",
+      ),
+
+    ),
+
+  ),
+  const SizedBox(height: 20),
 Card(
 
 elevation: 3,
