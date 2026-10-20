@@ -574,7 +574,7 @@ borderRadius: BorderRadius.circular(12),
 ),
 ),
 ),
-
+  const Divider(height: 25),
   SizedBox(
     height: 48,
     child: ElevatedButton.icon(
@@ -597,13 +597,14 @@ borderRadius: BorderRadius.circular(12),
       ),
     ),
   ),
+  const Divider(height: 25),
   SizedBox(
     height: 48,
     child: ElevatedButton.icon(
       onPressed:
       isLoading ? null : exportCSV2,
       icon: const Icon(
-        Icons.download,
+        Icons.download  ,
         color: Colors.white,
       ),
       label: const Text(
