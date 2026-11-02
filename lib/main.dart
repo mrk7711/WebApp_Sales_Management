@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:universal_html/html.dart' as html;
 import 'dart:convert';
+import 'bulk_sale_page.dart';
 import 'buyer_search_page.dart';
 import 'patient_search_page.dart';
 import 'edit_page.dart';
@@ -673,7 +674,7 @@ color: Colors.white)
 
     : const Text(
 
-"افزودن شماره سریال جدید",
+"افزودن شماره سریال جدید(تکی)",
 
 style: TextStyle(
 fontSize: 16,
@@ -682,6 +683,50 @@ color: Colors.black,
 ),
 ),
 ),
+  const SizedBox(height: 20),
+
+  SizedBox(
+
+    width: double.infinity,
+
+    height:45,
+
+    child: ElevatedButton.icon(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.blue[100],
+        foregroundColor: Colors.black,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+      ),
+      onPressed: () {
+
+
+        Navigator.push(
+
+          context,
+
+          MaterialPageRoute(
+
+            builder: (context)=>
+            const BulkSalePage(),
+
+          ),
+
+        );
+      },
+
+      icon: const Icon(
+        Icons.group,
+        color: Colors.blue,
+      ),
+      label: const Text(
+        " صفحه افزودن شماره سریال جدید(گروهی)",
+      ),
+
+    ),
+
+  ),
   const SizedBox(height: 20),
 
   SizedBox(
@@ -803,7 +848,7 @@ const SizedBox(height: 20),
       },
 
       icon: const Icon(
-        Icons.search,
+        Icons.edit,
         color: Colors.blue,
       ),
 
@@ -849,7 +894,7 @@ const SizedBox(height: 20),
       },
 
       icon: const Icon(
-        Icons.search,
+        Icons.assignment_return,
         color: Colors.blue,
       ),
       label: const Text(

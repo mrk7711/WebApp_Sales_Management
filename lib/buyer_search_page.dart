@@ -369,7 +369,6 @@ class _BuyerSearchPageState extends State<BuyerSearchPage> {
                                       ),
                                       tooltip: " کپی کد ",
                                       onPressed: () async {
-
                                         final uid =
                                             item["uid"]?.toString() ?? "";
 
